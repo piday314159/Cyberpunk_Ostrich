@@ -50,7 +50,7 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 		// image smaller, so the bigger the scale, the smaller the image will be.
 
 
-		sprite = new Sprite(50, 60);			
+		sprite = new Sprite(50, 60, background1.getImage().getIconHeight());			
 		// The Sprite constuctor has two parameter - - the x coordinate and y coordinate
 
 		setPreferredSize(new Dimension(background1.getImage().getIconWidth(),
@@ -108,7 +108,11 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 //			System.out.println("stop");
 //			sprite.stop_Vertical();
 //		}
-		if (sprite.getY() < 204 && sprite.jumpCounter == -1 && !(sprite.collision(item) && sprite.getY() < item.getY()))
+		
+		if((sprite.collision(item) && sprite.getY() < item.getY()) && sprite.getY() + sprite.imageResource.getImage().getIconHeight() - item.getY() <= 30) {
+			sprite.y_coordinate = item.getY() - sprite.imageResource.getImage().getIconHeight() +1;
+		}
+		else if (sprite.getY() < background1.getImage().getIconHeight() && sprite.jumpCounter == -1)
 			sprite.fall();
 
 		this.repaint();
