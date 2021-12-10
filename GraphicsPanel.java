@@ -10,19 +10,17 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
+import java.util.ArrayList;
+
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JPanel;
 import javax.swing.Timer;
-import java.awt.Rectangle;
 
 public class GraphicsPanel extends JPanel implements KeyListener{
 
@@ -32,19 +30,25 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 	private Background background2;			// There has to be two background objects for scrolling.
 
 	private Sprite sprite;					// create a Sprite object
-	private Item item;						// This declares an Item object. You can make a Item display
+	private ArrayList<Item> item;			// This declares an Item object. You can make a Item display
 	// pretty much any image that you would like by passing it
 	// the path for the image.
 	
 	private boolean key_left;
 	private boolean key_right;
+	
+	private boolean collide;
 
 
 	public GraphicsPanel(){
 		background1 = new Background();	// You can set the background variable equal to an instance of any of  
-		background2 = new Background(background1.getImage().getIconWidth());								
+		background2 = new Background(background1.getImage().getIconWidth());
+		
+		item = new ArrayList<Item>();
 
-		item = new Item(500, 200, "images/objects/box.png", 4);  
+		item.add(new Item(500, 200, "images/objects/box.png", 4));
+		item.add( new Item(600, 175, "images/objects/box.png", 4));
+		item.add( new Item(900, 100, "images/objects/box.png", 4));
 		// The Item constructor has 4 parameters - the x coordinate, y coordinate
 		// the path for the image, and the scale. The scale is used to make the
 		// image smaller, so the bigger the scale, the smaller the image will be.
@@ -68,6 +72,8 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 		
 		key_left = false;
 		key_right = false;
+		
+		collide = false;
 	}
 
 	// method: paintComponent
@@ -81,7 +87,9 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 		background1.draw(this, g);
 		background2.draw(this, g);
 
-		item.draw(g2, this);
+		for(int k = 0; k < item.size(); k++) {
+			item.get(k).draw(g2, this);
+		}
 		sprite.draw(g2, this);
 
 		g2.setColor(Color.RED);
@@ -104,17 +112,24 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 
 		// You can also check to see if two objects intersect like this. In this case if the sprite collides with the
 		// item, the item will get smaller. 
+		
 //		if(sprite.collision(item) && sprite.getY() < item.getY()) {
 //			System.out.println("stop");
 //			sprite.stop_Vertical();
 //		}
 		
-		if((sprite.collision(item) && sprite.getY() < item.getY()) && sprite.getY() + sprite.imageResource.getImage().getIconHeight() - item.getY() <= 30) {
-			sprite.y_coordinate = item.getY() - sprite.imageResource.getImage().getIconHeight() +1;
+		for(int k = 0; k < item.size(); k++) {
+			if((sprite.collision(item.get(k)) && sprite.getY() < item.get(k).getY()) && sprite.getY() + sprite.imageResource.getImage().getIconHeight() - item.get(k).getY() <= 20) {
+				sprite.y_coordinate = item.get(k).getY() - sprite.imageResource.getImage().getIconHeight() +1;
+				collide = true;
+				System.out.println(collide);
+			}
 		}
-		else if (sprite.getY() < background1.getImage().getIconHeight() && sprite.jumpCounter == -1)
+		
+		if (sprite.getY() < background1.getImage().getIconHeight() && sprite.jumpCounter == -1 && !collide)
 			sprite.fall();
-
+		
+		collide = false;
 		this.repaint();
 	}
 
@@ -136,7 +151,7 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 			key_left = true;
 			key_right = false;
 		}
-		else if(e.getKeyCode() == KeyEvent.VK_RIGHT && !(sprite.collision(item) && sprite.getY() < item.getY())) {
+		else if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
 			sprite.walkRight();
 			key_right = true;
 			key_left = false;
@@ -144,17 +159,22 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 		
 		else if(e.getKeyCode() == KeyEvent.VK_UP)
 			sprite.moveUp();
-		else if(e.getKeyCode() == KeyEvent.VK_DOWN && !(sprite.collision(item) && sprite.getY() < item.getY()))
-			sprite.moveDown();
+		
+//		else if(e.getKeyCode() == KeyEvent.VK_DOWN && !(sprite.collision(item) && sprite.getY() < item.getY()))
+//			sprite.moveDown();
 
 		else if(e.getKeyCode() == KeyEvent.VK_SPACE)
 			sprite.run();
-		else if(e.getKeyCode() == KeyEvent.VK_J && (sprite.getY() >= 204 || sprite.collision(item)))
-			sprite.jump();
-		else if(e.getKeyCode() == KeyEvent.VK_D) {
-			playSound("src/sounds/bump.WAV");
-			sprite.die();	
+		
+		for(int k = 0; k< item.size(); k++) {
+			if(e.getKeyCode() == KeyEvent.VK_J && (sprite.getY() >= 204 || (sprite.collision(item.get(k))
+									&& sprite.getY() + sprite.imageResource.getImage().getIconHeight() - item.get(k).getY() <= 30) ))
+				sprite.jump();
 		}
+//		else if(e.getKeyCode() == KeyEvent.VK_D) {
+//			playSound("src/sounds/bump.WAV");
+//			sprite.die();	
+//		}
 	}
 
 	// This function will play the sound "fileName".
