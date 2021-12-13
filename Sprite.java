@@ -32,13 +32,17 @@ public class Sprite {
 	protected ImageResource imageResource; // This object holds all of the images that will be used to draw the Sprite.
 	
 	protected int jumpAccel;
+	
+	protected int jumpVar;
+	
+	protected int screenHeight;
 
 
 	// method: Sprite's packed constructor
 	// description: Initialize a new Sprite object.
 	// parameters: x_coordinate - the initial x-coordinate for Sprite.
 	//			   y_coordinate - the initial y-coordinate for Sprite.
-	public Sprite(int x_coordinate, int y_coordinate){
+	public Sprite(int x_coordinate, int y_coordinate, int screenHeight){
 
 		this.x_coordinate = x_coordinate;		// Initial coordinates for the Sprite.
 		this.y_coordinate = y_coordinate; 
@@ -50,7 +54,11 @@ public class Sprite {
 		imageResource = new ImageResource("images/robot/", 8, 80);
 		jumpCounter = -1;
 		
-		jumpAccel = 20;
+		jumpVar = 20;
+		
+		jumpAccel = jumpVar;
+		
+		this.screenHeight = screenHeight - imageResource.getImage().getIconHeight();
 
 	}
 
@@ -112,15 +120,14 @@ public class Sprite {
 		}
 		
 
-		if(jumpCounter >= 0 && jumpCounter < 20) {
+		if(jumpCounter >= 0 && jumpCounter < jumpVar) {
 			if(jumpCounter == 0)
-				jumpAccel = 20;
-			if(jumpAccel > 20)
-				jumpAccel = 20;
+				jumpAccel = jumpVar;
+			if(jumpAccel > jumpVar)
+				jumpAccel = jumpVar;
 			jumpCounter++;
 			jumpAccel -= 1;
 			y_coordinate -= jumpAccel;
-			System.out.println(jumpCounter);
 		}
 
 		else {
@@ -130,13 +137,13 @@ public class Sprite {
 		imageResource.updateImage(x_direction + y_direction, jumpCounter >= 0, isDead);
 	}
 	
-	// causes the sprite to fall with acceleration
+	// causes the sprite to fall with acceleration until they reach the bottom of the screen
 	public void fall() {
-		if(getY() < 204) {
-			y_coordinate += jumpAccel;
-			jumpAccel += 1;
-			System.out.println(jumpAccel);
-		}
+		y_coordinate += jumpAccel;
+		jumpAccel += 1;
+			
+		if (getY() > screenHeight)
+			y_coordinate = screenHeight;
 	}
 
 
