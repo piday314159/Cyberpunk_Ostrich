@@ -46,9 +46,10 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 		
 		item = new ArrayList<Item>();
 
-		item.add(new Item(500, 200, "images/objects/box.png", 4));
+		item.add(new Item(350, 300, "images/objects/box.png", 4));
 		item.add( new Item(600, 175, "images/objects/box.png", 4));
 		item.add( new Item(900, 100, "images/objects/box.png", 4));
+		item.add( new Item(1200, 50, "images/objects/box.png", 4));
 		// The Item constructor has 4 parameters - the x coordinate, y coordinate
 		// the path for the image, and the scale. The scale is used to make the
 		// image smaller, so the bigger the scale, the smaller the image will be.
@@ -98,14 +99,12 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 	}
 
 	// method:clock
-	// description: This method is called by the clocklistener every 5 milliseconds.  You should update the coordinates
+	// description: This method is called by the clocklistener every 20 milliseconds.  You should update the coordinates
 	//				of one of your characters in this method so that it moves as time changes.  After you update the
 	//				coordinates you should repaint the panel. 
 	public void clock(){
 		// You can move any of your objects by calling their move methods.
 		sprite.move(this);
-		
-		System.out.println(sprite.getY());
 
 		background1.move(sprite.getX(), sprite.getXDirection());
 		background2.move(sprite.getX(), sprite.getXDirection());
@@ -118,11 +117,10 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 //			sprite.stop_Vertical();
 //		}
 		
-		for(int k = 0; k < item.size(); k++) {
-			if((sprite.collision(item.get(k)) && sprite.getY() < item.get(k).getY()) && sprite.getY() + sprite.imageResource.getImage().getIconHeight() - item.get(k).getY() <= 20) {
-				sprite.y_coordinate = item.get(k).getY() - sprite.imageResource.getImage().getIconHeight() +1;
+		for(Item k : item) {
+			if((sprite.collision(k) &&  sprite.getY() + sprite.imageResource.getImage().getIconHeight() - k.getY() <= 25)) {
+				sprite.y_coordinate = k.getY() - sprite.imageResource.getImage().getIconHeight() + 1;
 				collide = true;
-				System.out.println(collide);
 			}
 		}
 		
