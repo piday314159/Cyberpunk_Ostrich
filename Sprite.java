@@ -25,19 +25,18 @@ public class Sprite {
 	// - 1 : up
 	// 1 : down
 
-	public int jumpCounter;			// jumping animation takes several frames. This counter is used to keep track
+	protected int jumpCounter;			// jumping animation takes several frames. This counter is used to keep track
 	// of this process. If the Sprite isn't jumping this should be set to -1.
 
 	protected boolean isDead;			// as the name implies, this boolean is set to true of the character dies :(
 	protected ImageResource imageResource; // This object holds all of the images that will be used to draw the Sprite.
-	
+
 	protected int jumpAccel;
+	
+	protected int screenHeight;
 	
 	protected int jumpVar;
 	
-	protected int screenHeight;
-
-
 	// method: Sprite's packed constructor
 	// description: Initialize a new Sprite object.
 	// parameters: x_coordinate - the initial x-coordinate for Sprite.
@@ -54,7 +53,7 @@ public class Sprite {
 		imageResource = new ImageResource("images/robot/", 8, 80);
 		jumpCounter = -1;
 		
-		jumpVar = 20;
+		jumpVar = 18;
 		
 		jumpAccel = jumpVar;
 		
@@ -79,12 +78,12 @@ public class Sprite {
 	// return: A Rectangle - This rectangle would be like drawing a rectangle around the Character's image.
 	public Rectangle getBounds(){
 		if(x_direction < 0)
-			return new Rectangle(x_coordinate + imageResource.getImageOffset(), y_coordinate, 
-					imageResource.getImage().getIconWidth() - imageResource.getImageOffset()/2, 
+			return new Rectangle((x_coordinate + imageResource.getImageOffset()) + 80, y_coordinate, 
+					(imageResource.getImage().getIconWidth() - imageResource.getImageOffset()/2) - 8, 
 					imageResource.getImage().getIconHeight());
 		else
-			return new Rectangle(x_coordinate + 2 * imageResource.getImageOffset(), y_coordinate, 
-					imageResource.getImage().getIconWidth() - imageResource.getImageOffset()/2, 
+			return new Rectangle((x_coordinate + 2 * imageResource.getImageOffset()) , y_coordinate, 
+					(imageResource.getImage().getIconWidth() - imageResource.getImageOffset()/2) - 8, 
 					imageResource.getImage().getIconHeight());
 	}
 
@@ -111,33 +110,29 @@ public class Sprite {
 		// move to the right or left - speed will be positive
 		if (!isDead && ((x_coordinate > - (2*imageResource.getImageOffset()) && x_direction == -2 || x_direction == -5) ||
 				(x_coordinate + imageResource.getImage().getIconWidth() + imageResource.getImageOffset() < c.getWidth() - 100 && (x_direction == 2 || x_direction == 5) )))
-			x_coordinate += (x_direction)*4;
+			x_coordinate += (x_direction) * 0;
 		// jump
 		else if (!isDead && (y_coordinate > 0 && y_direction == -1) || 
-				(y_coordinate + imageResource.getImage().getIconWidth() < c.getHeight() && y_direction == 1 )) {
-			y_coordinate += (y_direction)*4;
-			System.out.println(getY());
-		}
-		
+				(y_coordinate + imageResource.getImage().getIconWidth() < c.getHeight() && y_direction == 1 ))
+			y_coordinate += (y_direction) * 4;
 
 		if(jumpCounter >= 0 && jumpCounter < jumpVar) {
-			if(jumpCounter == 0)
+			if (jumpCounter == 0)
 				jumpAccel = jumpVar;
-			if(jumpAccel > jumpVar)
+			if (jumpAccel > jumpVar)
 				jumpAccel = jumpVar;
 			jumpCounter++;
 			jumpAccel -= 1;
 			y_coordinate -= jumpAccel;
 		}
-
+		
 		else {
 			jumpCounter = -1;
 		}
 
 		imageResource.updateImage(x_direction + y_direction, jumpCounter >= 0, isDead);
 	}
-	
-	// causes the sprite to fall with acceleration until they reach the bottom of the screen
+
 	public void fall() {
 		y_coordinate += jumpAccel;
 		jumpAccel += 1;
@@ -145,7 +140,6 @@ public class Sprite {
 		if (getY() > screenHeight)
 			y_coordinate = screenHeight;
 	}
-
 
 	// Methods that deal with horizontal movement. These functions don't actually move the Item, they set the direction.
 	// actual movements will occur when the the object's move method is called.
@@ -164,7 +158,7 @@ public class Sprite {
 		x_direction = (x_direction < 0) ? -2 : 2;
 	}
 	public void idle() {
-		x_direction = (x_direction < 0) ? -1 : 1;
+		x_direction = (x_direction < 0) ? 1 : 1;
 	}
 
 	public void jump() {
@@ -205,7 +199,7 @@ public class Sprite {
 		Graphics2D g2 = (Graphics2D)g;
 
 		if(x_direction < 0)
-			g2.drawImage(imageResource.getImage().getImage(), x_coordinate + imageResource.getImage().getIconWidth() + imageResource.getImageOffset(), 
+			g2.drawImage(imageResource.getImage().getImage(), 50 +  (x_coordinate + imageResource.getImage().getIconWidth() + imageResource.getImageOffset()), 
 					y_coordinate, -imageResource.getImage().getIconWidth(), imageResource.getImage().getIconHeight(), null);
 		else
 			g2.drawImage(imageResource.getImage().getImage(), x_coordinate + imageResource.getImage().getIconWidth(), 
