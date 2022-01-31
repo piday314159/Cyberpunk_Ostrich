@@ -32,11 +32,13 @@ public class Sprite {
 	protected ImageResource imageResource; // This object holds all of the images that will be used to draw the Sprite.
 
 	protected int jumpAccel;
+
+	protected int screenHeight; // height of the background image - height of the sprite's image
+
+	protected int jumpVar; // controls the initial velocity of the jump
 	
-	protected int screenHeight;
-	
-	protected int jumpVar;
-	
+	public double scoreCount;
+
 	// method: Sprite's packed constructor
 	// description: Initialize a new Sprite object.
 	// parameters: x_coordinate - the initial x-coordinate for Sprite.
@@ -50,14 +52,17 @@ public class Sprite {
 		// the right but no moving.
 		y_direction = 0;						// 0 for y direction means it's not moving vertically.
 
-		imageResource = new ImageResource("images/robot/", 8, 80);
+		imageResource = new ImageResource("images/robot/", 6, 80);
+
 		jumpCounter = -1;
-		
+
 		jumpVar = 18;
-		
+
 		jumpAccel = jumpVar;
-		
+
 		this.screenHeight = screenHeight - imageResource.getImage().getIconHeight();
+		
+		scoreCount = 0;
 
 	}
 
@@ -78,12 +83,12 @@ public class Sprite {
 	// return: A Rectangle - This rectangle would be like drawing a rectangle around the Character's image.
 	public Rectangle getBounds(){
 		if(x_direction < 0)
-			return new Rectangle((x_coordinate + imageResource.getImageOffset()) + 80, y_coordinate, 
-					(imageResource.getImage().getIconWidth() - imageResource.getImageOffset()/2) - 8, 
+			return new Rectangle((x_coordinate + imageResource.getImageOffset()) + 50, y_coordinate, 
+					(imageResource.getImage().getIconWidth()) /* - imageResource.getImageOffset()/2) - 8 */, 
 					imageResource.getImage().getIconHeight());
 		else
-			return new Rectangle((x_coordinate + 2 * imageResource.getImageOffset()) , y_coordinate, 
-					(imageResource.getImage().getIconWidth() - imageResource.getImageOffset()/2) - 8, 
+			return new Rectangle((x_coordinate + 2 * imageResource.getImageOffset()) - 80, y_coordinate, 
+					(imageResource.getImage().getIconWidth()) /*- imageResource.getImageOffset()/2) - 8 */, 
 					imageResource.getImage().getIconHeight());
 	}
 
@@ -109,8 +114,13 @@ public class Sprite {
 	public void move(Component c){
 		// move to the right or left - speed will be positive
 		if (!isDead && ((x_coordinate > - (2*imageResource.getImageOffset()) && x_direction == -2 || x_direction == -5) ||
-				(x_coordinate + imageResource.getImage().getIconWidth() + imageResource.getImageOffset() < c.getWidth() - 100 && (x_direction == 2 || x_direction == 5) )))
+				(x_coordinate + imageResource.getImage().getIconWidth() + imageResource.getImageOffset() < c.getWidth() - 100 && (x_direction == 2 || x_direction == 5) ))) {
 			x_coordinate += (x_direction) * 0;
+			
+			scoreCount += x_direction / 100.0;
+		}
+			
+			
 		// jump
 		else if (!isDead && (y_coordinate > 0 && y_direction == -1) || 
 				(y_coordinate + imageResource.getImage().getIconWidth() < c.getHeight() && y_direction == 1 ))
@@ -125,7 +135,7 @@ public class Sprite {
 			jumpAccel -= 1;
 			y_coordinate -= jumpAccel;
 		}
-		
+
 		else {
 			jumpCounter = -1;
 		}
@@ -133,12 +143,16 @@ public class Sprite {
 		imageResource.updateImage(x_direction + y_direction, jumpCounter >= 0, isDead);
 	}
 
+	// method: fall
+	// parameters: none
+	// return: none
+	// description: causes the sprite to move downwards at an increasing speed
 	public void fall() {
 		y_coordinate += jumpAccel;
 		jumpAccel += 1;
-			
-		if (getY() > screenHeight)
-			y_coordinate = screenHeight;
+
+//		if (getY() > screenHeight)
+//			y_coordinate = screenHeight;
 	}
 
 	// Methods that deal with horizontal movement. These functions don't actually move the Item, they set the direction.
@@ -149,9 +163,9 @@ public class Sprite {
 	public void walkLeft() {
 		x_direction = -2;
 	}
-	public void run() {
-		x_direction = (x_direction < 0) ? -5 : 5;
-	}
+//	public void run() {
+//		x_direction = (x_direction < 0) ? -5 : 5;
+//	}
 
 	// Methods that deal with vertical movement. These functions don't actually move the Sprite, they set the direction.
 	public void slowDown() {
@@ -190,6 +204,7 @@ public class Sprite {
 	public int getXDirection() {
 		return x_direction;
 	}
+
 	// method: draw
 	// description: This method is used to draw the image onto the GraphicsPanel.  You shouldn't need to 
 	//				modify this method.

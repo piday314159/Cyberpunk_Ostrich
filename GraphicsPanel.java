@@ -4,10 +4,11 @@
 // Description: This class is the main class for this project.  It extends the Jpanel class and will be drawn on
 // 				on the JPanel in the GraphicsMain class.  
 //
-// Since you will modify this class you should add comments that describe when and how you modified the class.  
+// Modified the jump and movement system, and added a universal fall method. 
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
@@ -31,7 +32,8 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 
 	private ArrayList<Background> background;
 	private Background background1;			// The background object will display a picture in the background.
-	private Background background2;			// There has to be two background objects for scrolling.
+	private Background background2;	// There has to be two background objects for scrolling.
+	private Background background3;
 
 	private Sprite sprite;					// create a Sprite object
 	private ArrayList<Item> item;						// This declares an Item object. You can make a Item display
@@ -44,21 +46,25 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 	private Boolean key_right;
 
 	private int platformCounter;
+	
+	private double score;
+	
+	private double highScore;
 
 
 	public GraphicsPanel(){
 		background = new ArrayList<>();
 
-
-
-		background1 = new Background();	// You can set the background variable equal to an instance of any of  
-		background2 = new Background(background1.getImage().getIconWidth());	
+		background1 = new Background();	// initialize 3 backgrounds used to scroll the screens 
+		background2 = new Background(background1.getImage().getIconWidth());
+		background3 = new Background(background2.getImage().getIconWidth() + background1.getImage().getIconWidth());
 
 		background.add(background1);
 		background.add(background2);
+		background.add(background3);
 
-		item = new ArrayList<>();
-		item.add(new Item(500, 200, "images/objects/box.png", 4));  
+		item = new ArrayList<>(); // array  list containing platforms
+		item.add(new Item(500, 200, "images/objects/building5 purple.png", 1));  
 
 		// The Item constructor has 4 parameters - the x coordinate, y coordinate
 		// the path for the image, and the scale. The scale is used to make the
@@ -73,7 +79,7 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 		// This line of code sets the dimension of the panel equal to the dimensions
 		// of the background image.
 
-		timer = new Timer(15, new ClockListener(this));   // This object will call the ClockListener's
+		timer = new Timer(12, new ClockListener(this));   // This object will call the ClockListener's
 		// action performed method every 5 milliseconds once the 
 		// timer is started. You can change how frequently this
 		// method is called by changing the first parameter.
@@ -81,12 +87,16 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 		this.setFocusable(true);					     // for keylistener
 		this.addKeyListener(this);
 
-		key_left = false;
+		key_left = false; // variables used to prevent you from stopping if you switch your direction of movement
 		key_right = false;
 
-		collide = false;
+		collide = false; // boolean for collision check
 
 		platformCounter = 0;
+		
+		score = 0;
+		
+		highScore = 0;
 	}
 
 	// method: paintComponent
@@ -97,8 +107,8 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 	public void paintComponent(Graphics g){
 		Graphics2D g2 = (Graphics2D) g;
 
-		background.get(0).draw(this, g);
-		background.get(1).draw(this, g);
+		for(Background b : background)
+			b.draw(this, g);
 
 		for (Item i: item) {
 			i.draw(g2, this);
@@ -106,9 +116,17 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 
 		sprite.draw(g2, this);
 
-		g2.setColor(Color.RED);
-		Rectangle r = sprite.getBounds();
-		g2.draw(r);
+		g2.setColor(Color.lightGray);
+		
+//		Rectangle r = sprite.getBounds();
+//		g2.draw(r);
+		
+		Font font = new Font ("Serif", Font.PLAIN, 50);
+		
+		g2.setFont(font);
+		
+		g2.drawString("Score: " + (int)score, 1450, 75);
+		
 	}
 
 	// method:clock
@@ -116,11 +134,20 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 	//				of one of your characters in this method so that it moves as time changes.  After you update the
 	//				coordinates you should repaint the panel. 
 	public void clock(){
+		
+		// collision check for the array list of platforms
+		for(int k = 0; k < item.size(); k++) {
+			if((sprite.collision(item.get(k)) && sprite.getY() + sprite.imageResource.getImage().getIconHeight() - item.get(k).getY() <= 35)) {
+				sprite.y_coordinate = item.get(k).getY() - sprite.imageResource.getImage().getIconHeight()+5;
+				collide = true;
+			}
+		}
+		
 		// You can move any of your objects by calling their move methods.
 		sprite.move(this);
 
-		background.get(0).move(/*sprite.getX(),*/ sprite.getXDirection());
-		background.get(1).move(/*sprite.getX(),*/ sprite.getXDirection());
+		for(Background b : background)
+			b.move(/*sprite.getX(),*/ sprite.getXDirection());
 
 		for (Item i: item) {
 			i.move(sprite.getXDirection());
@@ -128,13 +155,13 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 
 		int itemSize = item.size() - 1;
 
-
+		// adds platforms if there are less than 15 of them
 		if (platformCounter < 15) {
-			item.add(new Item(item.get(itemSize).getX() + 100 + (int)(Math.random() * 300), 140 + (int)(Math.random()* 80) /*(int)((5 > Math.random() * 10)? 150: 220)*/, "images/objects/box.png", 2));
+			item.add(new Item(item.get(itemSize).getX() + 200 + (int)(Math.random() * 300), 150 + (int)(Math.random()* 130) , "images/objects/building5 purple.png", 1));
 			platformCounter++;
-			System.out.println("new plantform");
 		}
 
+		// removes platforms that move too far off screen
 		for (int i = item.size() - 1; i >= 0; i--) {
 			if (item.get(i).getX() < -1000) {
 				item.remove(i);
@@ -142,24 +169,29 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 			}
 		}
 
-		for(int k = 0; k < item.size(); k++) {
-			if((sprite.collision(item.get(k)) && sprite.getY() + sprite.imageResource.getImage().getIconHeight() - item.get(k).getY() <= 25)) {
-				sprite.y_coordinate = item.get(k).getY() - sprite.imageResource.getImage().getIconHeight() +1;
-				collide = true;
+		// adds and removes backgrounds as the screen scrolls
+		for (int b = background.size() - 1; b >= 0; b--) {
+			if (background.get(b).getX() < -1800) {
+				background.add(new Background(background.get(background.size() - 1).getX() + background.get(background.size() - 1).getImage().getIconWidth()));
+				background.remove(b);
 			}
 		}
-
-		// You can also check to see if two objects intersect like this. In this case if the sprite collides with the
-		// item, the item will get smaller. 
-		//		if(sprite.collision(item.get(0)) && sprite.getY() < item.get(0).getY()) {
-		//			System.out.println("stop");
-		//			sprite.stop_Vertical();
-		//		}
-
+		
+		// causes the sprite to fall if they are not jumping and not standing on anything
 		if (sprite.getY() < background1.getImage().getIconHeight() && sprite.jumpCounter == -1 && !collide)
 			sprite.fall();
+		
+		if (sprite.getY() > background1.getImage().getIconHeight()) {
+			sprite.die();
+		}
 
 		collide = false;
+		
+		if(sprite.scoreCount > highScore)
+			highScore = sprite.scoreCount;
+		
+		score = highScore;
+		
 		this.repaint();
 	}
 
@@ -171,34 +203,27 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 	@Override
 	public void keyPressed(KeyEvent e) {
 
-		if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
+		if(e.getKeyCode() == KeyEvent.VK_RIGHT && !sprite.isDead) {
 			sprite.walkRight();
 			key_right = true;
 			key_left = false;
 		}
-		
-		if(e.getKeyCode() == KeyEvent.VK_LEFT) {
+
+		if(e.getKeyCode() == KeyEvent.VK_LEFT && !sprite.isDead) {
 			sprite.walkLeft();
 			key_right = false;
 			key_left = true;
 		}
-		//		else if(e.getKeyCode() == KeyEvent.VK_UP)
-		//			sprite.jump();
-		
-//		for (Item i: item) {
-//			if(e.getKeyCode() == KeyEvent.VK_DOWN && !(sprite.collision(i) && sprite.getY() < i.getY()))
-//				sprite.moveDown();
-//		}
-		
-		if(e.getKeyCode() == KeyEvent.VK_SPACE)
-			sprite.run();
-		//		else if(e.getKeyCode() == KeyEvent.VK_J)
-		//			sprite.jump();
+
+//		if(e.getKeyCode() == KeyEvent.VK_SPACE)
+//			sprite.run();
+
 		else if(e.getKeyCode() == KeyEvent.VK_D) {
 			playSound("src/sounds/bump.WAV");
 			sprite.die();	
 		}
 
+		// causes the sprite to jump
 		for(Item i: item) {
 			if(e.getKeyCode() == KeyEvent.VK_UP && (sprite.getY() >= 204 || (sprite.collision(i)
 					&& sprite.getY() + sprite.imageResource.getImage().getIconHeight() - i.getY() <= 30) ))
@@ -229,8 +254,7 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 	// parameters: KeyEvent e
 	@Override
 	public void keyTyped(KeyEvent e) {
-
-
+		
 	}
 
 	// method: keyReleased()
@@ -240,7 +264,8 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 	// parameters: KeyEvent e
 	@Override
 	public void keyReleased(KeyEvent e) {
-
+		
+		// sprite only stop moving if neither key is held, won't stop if direction changes 
 		if((e.getKeyCode() == KeyEvent.VK_RIGHT && key_left == false) || (e.getKeyCode() == KeyEvent.VK_LEFT && key_right == false))
 			sprite.idle();
 		else if(e.getKeyCode() ==  KeyEvent.VK_UP || e.getKeyCode() ==  KeyEvent.VK_DOWN)

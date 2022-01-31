@@ -15,17 +15,24 @@ public class Background {
 	protected ImageIcon image;
 	protected int scale;
 	protected int x;
+	protected int imageScale;
 	
 	public Background(int x) {
 		ClassLoader cldr = this.getClass().getClassLoader();	// These five lines of code load the background picture.
-		String imagePath = "images/background/raceTrack.png";	// Change this line if you want to use a different 
+		String imagePath = "images/background/Background.png";	// Change this line if you want to use a different 
 		URL imageURL = cldr.getResource(imagePath);				// background image.  The image should be saved in the
 		scale = 1;
 		
+		imageScale = 3;
+		
 		image = new ImageIcon(imageURL);
 		
-		Image scaled = image.getImage().getScaledInstance(image.getIconWidth() / scale, 
-				image.getIconHeight() / scale, Image.SCALE_SMOOTH);
+		
+//		Image scaled = image.getImage().getScaledInstance(image.getIconWidth() / scale, 
+//				image.getIconHeight() / scale, Image.SCALE_SMOOTH);
+		
+		Image scaled = image.getImage().getScaledInstance(image.getIconWidth() / imageScale, 
+				image.getIconHeight() / imageScale, Image.SCALE_SMOOTH);
 		
 		image = new ImageIcon(scaled);
 		
